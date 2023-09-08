@@ -1,0 +1,11 @@
+{
+	"id": "primer-plugin",
+	"name": "Mi primer plugin",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Sexo",
+	"author": "Yo",
+	"authorUrl": "https://obsidian.md",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
+}
