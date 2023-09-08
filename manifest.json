@@ -1,11 +1,10 @@
 {
-	"id": "primer-plugin",
-	"name": "Mi primer plugin",
+	"id": "saving-reddit-post-to-markdown-file",
+	"name": "Saving Reddit post to Markdown file",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Sexo",
-	"author": "Yo",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Saving Reddit post to Markdown file",
+	"author": "lauta-dev",
+	"authorUrl": "https://github.com/lauta-dev",
 	"isDesktopOnly": false
 }
