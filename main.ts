@@ -1,5 +1,18 @@
-import { Editor, MarkdownView, Notice, Plugin, Modal, App, Setting, PluginSettingTab } from 'obsidian'
-
+import {
+	Notice,
+	Plugin,
+	Modal,
+	App,
+	Setting,
+	PluginSettingTab,
+	Editor,
+	MarkdownView,
+	TAbstractFile,
+} from 'obsidian'
+import { metadata } from './src/settings';
+import { get } from './src/fetching';
+import { tags } from './src/template/tags'
+import { general } from './src/template/general'
 
 interface ExamplePluginSettings {
 	dateFormat: string;
@@ -14,27 +27,64 @@ export default class mi extends Plugin {
 
 
 	async onload() {
-		new Notice('Plugin activado')
 		await this.loadSettings()
 
 		this.addSettingTab(new SettingTab(this.app, this));
-
 
 		this.addRibbonIcon('dice', 'print to console', () => {
 			new MyModal(this.app).open();
 		})
 
+		this.addCommand({
+			id: 'sss',
+			name: 'saving',
+			editorCallback: async (e: Editor, v: MarkdownView) => {
+				const oldValue = e.getSelection()
+				new Notice(oldValue)
 
+				const clipboard = await window.navigator.clipboard.readText()
+				const endJpgOrPng = clipboard.startsWith('http://') || clipboard.startsWith('https://')
+				console.log(clipboard)
+
+
+				if (!endJpgOrPng) {
+					new Notice('El enlace tiene que enpezar con http:// o https://')
+
+					return
+				}
+
+				const name = await get({ url: clipboard })
+
+				if (!name) {
+					return
+				}
+
+				const { author, media, selftext, subreddit_name_prefixed, title, url, preview, getVideo } = name
+				const subredditLink = clipboard.match(/^(https:\/\/www\.reddit\.com\/r\/[^/]+).*$/)![1]
+
+
+				console.log(media)
+				this.app.vault.createFolder('reddit') //<-- me creo la carpeta
+				this.app.vault.create(`reddit/${title}.md`,
+					`${tags({ author, clipboard, subreddit_name_prefixed, subredditLink })}
+${general({ ...name })}
+![${title}](${preview})
+
+<video controls>
+	<source src=${getVideo}/>
+</video>
+
+${selftext}
+`)
+			}
+		})
 	}
 
 	async onunload() {
-		new Notice('Plugin desactivado')
 	}
 
 
 	async loadSettings() {
-		new Notice('Cargar plugin')
-
 		return this.settings = Object.assign(
 			{}, DEFAULT_SETTINGS, await this.loadData()
 		);
@@ -61,18 +111,21 @@ export class MyModal extends Modal {
 			.addText((text) =>
 				text.onChange((value) => {
 					this.result = value
-				}));
-
-
-		new Setting(contentEl)
+				})
+			)
 			.addButton(btn =>
 				btn
 					.setButtonText('submit')
 					.onClick(() => {
-						new Notice(this.result)
-					})
+						const url = this.result
+						const endWithReddit = url.startsWith(metadata.reddit)
 
-			)
+						if (endWithReddit) {
+							fetching({ url })
+							return
+						}
+						new Notice('El elemento tiene que enpezar con: ' + metadata.reddit)
+					}));
 	}
 
 	onClose() {
@@ -80,6 +133,11 @@ export class MyModal extends Modal {
 		contentEl.empty();
 	}
 }
+
+export abstract class A extends TAbstractFile {
+
+}
+
 
 export class SettingTab extends PluginSettingTab {
 
@@ -121,3 +179,12 @@ export class SettingTab extends PluginSettingTab {
 			)
 	}
 }
+
+interface fetchTypes {
+	url: string
+}
+
+const fetching = async ({ url }: fetchTypes) => {
+	await get({ url })
+}
+
