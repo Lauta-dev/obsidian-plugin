@@ -13,6 +13,7 @@ import { metadata } from './src/settings';
 import { get } from './src/fetching';
 import { tags } from './src/template/tags'
 import { general } from './src/template/general'
+import { template } from 'src/template';
 
 interface ExamplePluginSettings {
 	dateFormat: string;
@@ -59,23 +60,21 @@ export default class mi extends Plugin {
 					return
 				}
 
-				const { author, media, selftext, subreddit_name_prefixed, title, url, preview, getVideo } = name
+				const { author, selftext, subreddit_name_prefixed, title, preview, getVideo } = name
 				const subredditLink = clipboard.match(/^(https:\/\/www\.reddit\.com\/r\/[^/]+).*$/)![1]
 
-
-				console.log(media)
 				this.app.vault.createFolder('reddit') //<-- me creo la carpeta
-				this.app.vault.create(`reddit/${title}.md`,
-					`${tags({ author, clipboard, subreddit_name_prefixed, subredditLink })}
-${general({ ...name })}
-![${title}](${preview})
-
-<video controls>
-	<source src=${getVideo}/>
-</video>
-
-${selftext}
-`)
+				this.app.vault.create(`reddit/${title}.md`, template({
+					author,
+					clipboard,
+					preview,
+					selftext,
+					subreddit_name_prefixed,
+					subredditLink,
+					title,
+					name,
+					getVideo
+				}))
 			}
 		})
 	}
